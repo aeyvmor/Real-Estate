@@ -60,6 +60,7 @@ public class LoginFrame extends javax.swing.JFrame {
         card.setPreferredSize(new java.awt.Dimension(460, 240));
         card.setLayout(new javax.swing.BoxLayout(card, javax.swing.BoxLayout.Y_AXIS));
 
+        titleLabel.setBackground(new java.awt.Color(255, 191, 0));
         titleLabel.setFont(new java.awt.Font("Courier New", 1, 32)); // NOI18N
         titleLabel.setText("FIESTA HOMES");
         titleLabel.setAlignmentX(0.5F);
