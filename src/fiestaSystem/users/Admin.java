@@ -12,19 +12,18 @@ public class Admin extends User {
     public Admin(String id, String name) {
         super(id, name, "ADMIN");
         this.properties = new ArrayList<>();
-        seedData();
+        // seedData(); // commented out — admin adds lots manually via UI
     }
 
+    /*
     private void seedData() {
         String[] facings = {"NORTH", "SOUTH", "EAST", "WEST"};
-        // Base prices per block (increases per block)
         double[] basePrices = {625000, 700000, 900000, 1100000, 1200000};
         double[] sqmOptions = {40, 40, 55, 55, 40};
 
         for (int block = 1; block <= 5; block++) {
             for (int lot = 1; lot <= 20; lot++) {
                 double basePrice = basePrices[block - 1];
-                // slight variation per lot
                 double price = basePrice + (lot * 5000);
                 double sqm = sqmOptions[block - 1];
                 String facing = facings[lot % 4];
@@ -33,6 +32,7 @@ public class Admin extends User {
         }
         System.out.println("Seeded " + properties.size() + " properties.");
     }
+    */
 
     @Override
     public void login() {
@@ -54,33 +54,47 @@ public class Admin extends User {
             boolean blockMatch = (block == 0 || p.getBlockNumber() == block);
             boolean sqmMatch   = (p.getSqm() >= minSqm);
             boolean priceMatch = (maxPrice == 0 || p.getPrice() <= maxPrice);
-            boolean available  = (p.getStatus() == PropertyStatus.AVAILABLE);
-            if (blockMatch && sqmMatch && priceMatch && available) {
+            if (blockMatch && sqmMatch && priceMatch) {
                 result.add(p);
             }
         }
         return result;
     }
 
-    public void generateReport() {
+    /**
+     * Returns a formatted report string for display in the UI dialog.
+     */
+    public String generateReport() {
         int sold = 0, reserved = 0, available = 0;
         double revenue = 0;
         for (Property p : properties) {
             switch (p.getStatus()) {
-                case SOLD:       sold++;      revenue += p.getPrice(); break;
-                case RESERVED:   reserved++;  break;
-                case AVAILABLE:  available++; break;
+                case SOLD:      sold++;     revenue += p.getPrice(); break;
+                case RESERVED:  reserved++; break;
+                case AVAILABLE: available++; break;
             }
         }
-        System.out.println("=== MASTER REPORT ===");
-        System.out.println("Total Lots  : " + properties.size());
-        System.out.println("Available   : " + available);
-        System.out.println("Reserved    : " + reserved);
-        System.out.println("Sold        : " + sold);
-        System.out.println("Revenue     : P" + String.format("%.2f", revenue));
-        System.out.println("=====================");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("╔══════════════════════════════╗\n");
+        sb.append("║       MASTER LOT REPORT      ║\n");
+        sb.append("╠══════════════════════════════╣\n");
+        sb.append(String.format("║  Total Lots  : %-14d║\n", properties.size()));
+        sb.append(String.format("║  Available   : %-14d║\n", available));
+        sb.append(String.format("║  Reserved    : %-14d║\n", reserved));
+        sb.append(String.format("║  Sold        : %-14d║\n", sold));
+        sb.append(String.format("║  Revenue     : ₱%-13s║\n", String.format("%,.2f", revenue)));
+        sb.append("╠══════════════════════════════╣\n");
+        sb.append("║  LOT BREAKDOWN               ║\n");
+        sb.append("╠══════════════════════════════╣\n");
         for (Property p : properties) {
-            System.out.println(p);
+            sb.append(String.format("  %-10s │ BLK%-2d │ %-9s │ ₱%,.0f\n",
+                p.getId(), p.getBlockNumber(), p.getStatus(), p.getPrice()));
         }
+        sb.append("╚══════════════════════════════╝\n");
+
+        // Also print to console
+        System.out.println(sb.toString());
+        return sb.toString();
     }
 }

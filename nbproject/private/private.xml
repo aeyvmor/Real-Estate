@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/enums/PropertyStatus.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/enums/TransactionType.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/enums/TransactionStatus.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/model/Property.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/payment/PaymentStrategy.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/payment/CashPayment.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/payment/BDOLoan.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/payment/PagIbigLoan.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/payment/InHouseFinancing.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/model/Transaction.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/model/User.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/users/Admin.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/users/Agent.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/users/Customer.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/TestRun.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/AppState.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/ui/LoginFrame.java</file>
+            <file>file:/C:/Users/Abd/OneDrive/Desktop/Eiv's%20Stuff/Mapua%202526T2/CSS122P/Real%20Estate/RealEstate/src/fiestaSystem/ui/AdminPane.java</file>
+        </group>
+    </open-files>
+</project-private>
