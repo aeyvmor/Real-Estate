@@ -3,6 +3,7 @@ package fiestaSystem.users;
 import fiestaSystem.model.User;
 import fiestaSystem.model.Property;
 import fiestaSystem.enums.PropertyStatus;
+import fiestaSystem.enums.HouseType;
 import java.util.ArrayList;
 
 public class Admin extends User {
@@ -17,17 +18,18 @@ public class Admin extends User {
 
     /*
     private void seedData() {
+        // Kept for reference. Uncomment to pre-populate for testing.
+        HouseType[] types = {
+            HouseType.ROW_BARE, HouseType.ROW_IMPROVED,
+            HouseType.ROW_IMPROVED_END, HouseType.DUPLEX_2BR, HouseType.DUPLEX_3BR
+        };
         String[] facings = {"NORTH", "SOUTH", "EAST", "WEST"};
-        double[] basePrices = {625000, 700000, 900000, 1100000, 1200000};
-        double[] sqmOptions = {40, 40, 55, 55, 40};
-
         for (int block = 1; block <= 5; block++) {
+            HouseType ht = types[block - 1];
             for (int lot = 1; lot <= 20; lot++) {
-                double basePrice = basePrices[block - 1];
-                double price = basePrice + (lot * 5000);
-                double sqm = sqmOptions[block - 1];
+                double price = ht.basePrice + (lot * 5000);
                 String facing = facings[lot % 4];
-                properties.add(new Property(block, lot, price, sqm, facing));
+                properties.add(new Property(block, lot, price, ht.lotSqm, facing, ht));
             }
         }
         System.out.println("Seeded " + properties.size() + " properties.");
@@ -48,6 +50,10 @@ public class Admin extends User {
         return properties;
     }
 
+    /**
+     * Filters properties by block, minimum sqm, and maximum price.
+     * block=0 means all blocks. minSqm=0 and maxPrice=0 means no limit.
+     */
     public ArrayList<Property> filterProperties(int block, double minSqm, double maxPrice) {
         ArrayList<Property> result = new ArrayList<>();
         for (Property p : properties) {
@@ -76,24 +82,29 @@ public class Admin extends User {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("╔══════════════════════════════╗\n");
-        sb.append("║       MASTER LOT REPORT      ║\n");
-        sb.append("╠══════════════════════════════╣\n");
-        sb.append(String.format("║  Total Lots  : %-14d║\n", properties.size()));
-        sb.append(String.format("║  Available   : %-14d║\n", available));
-        sb.append(String.format("║  Reserved    : %-14d║\n", reserved));
-        sb.append(String.format("║  Sold        : %-14d║\n", sold));
-        sb.append(String.format("║  Revenue     : ₱%-13s║\n", String.format("%,.2f", revenue)));
-        sb.append("╠══════════════════════════════╣\n");
-        sb.append("║  LOT BREAKDOWN               ║\n");
-        sb.append("╠══════════════════════════════╣\n");
+        sb.append("╔══════════════════════════════════════════════════════╗\n");
+        sb.append("║              MASTER LOT REPORT                       ║\n");
+        sb.append("╠══════════════════════════════════════════════════════╣\n");
+        sb.append(String.format("║  Total Lots  : %-36d║\n", properties.size()));
+        sb.append(String.format("║  Available   : %-36d║\n", available));
+        sb.append(String.format("║  Reserved    : %-36d║\n", reserved));
+        sb.append(String.format("║  Sold        : %-36d║\n", sold));
+        sb.append(String.format("║  Revenue     : ₱%-35s║\n", String.format("%,.2f", revenue)));
+        sb.append("╠══════════════════════════════════════════════════════╣\n");
+        sb.append(String.format("  %-10s  %-6s  %-22s  %-9s  %s\n",
+                "ID", "BLOCK", "HOUSE TYPE", "STATUS", "PRICE"));
+        sb.append("  " + "─".repeat(68) + "\n");
         for (Property p : properties) {
-            sb.append(String.format("  %-10s │ BLK%-2d │ %-9s │ ₱%,.0f\n",
-                p.getId(), p.getBlockNumber(), p.getStatus(), p.getPrice()));
+            String typeName = p.getHouseType() != null ? p.getHouseType().displayName : "N/A";
+            sb.append(String.format("  %-10s  BLK%-3d  %-22s  %-9s  ₱%,.0f\n",
+                p.getId(),
+                p.getBlockNumber(),
+                typeName,
+                p.getStatus(),
+                p.getPrice()));
         }
-        sb.append("╚══════════════════════════════╝\n");
+        sb.append("╚══════════════════════  ════════════════════════════════╝\n");
 
-        // Also print to console
         System.out.println(sb.toString());
         return sb.toString();
     }

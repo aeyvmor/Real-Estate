@@ -2,21 +2,23 @@
  * LotDetailFrame.java
  * fiestaSystem.ui
  * Lot detail + Financial Terminal.
- * Shows lot info, blueprint placeholder, payment calculator,
- * RESERVE and INITIATE PURCHASE buttons.
+ * Left: house image (loaded from ui/images/), specs card.
+ * Right: full financial breakdown with fees from HouseType.
  * All logic delegated to AppState.currentCustomer methods.
  */
 package fiestaSystem.ui;
 
 import fiestaSystem.AppState;
 import fiestaSystem.model.Property;
-import fiestaSystem.payment.*;
+import fiestaSystem.enums.HouseType;
 import fiestaSystem.enums.PropertyStatus;
+import fiestaSystem.payment.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.URL;
 
 /**
  * @author eevee
@@ -27,40 +29,40 @@ public class LotDetailFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(LotDetailFrame.class.getName());
 
     // ── Palette ──────────────────────────────────────────────────────────────
-    private static final Color BG_PINK    = new Color(255, 105, 180);
-    private static final Color BG_WHITE   = new Color(255, 255, 255);
-    private static final Color DARK       = new Color(10, 10, 10);
-    private static final Color CYAN       = new Color(0, 220, 230);
-    private static final Color CYAN_DARK  = new Color(0, 160, 200);
-    private static final Color YELLOW     = new Color(255, 213, 0);
-    private static final Color GREEN      = new Color(34, 197, 94);
-    private static final Color GREEN_BG   = new Color(34, 197, 94);
-    private static final Color TEXT_GRAY  = new Color(100, 100, 100);
-    private static final Color BORDER_LT  = new Color(220, 220, 220);
-    private static final Color BLUEPRINT  = new Color(0, 30, 80);
-    private static final Color BP_LINE    = new Color(0, 180, 220);
+    private static final Color BG_PINK   = new Color(255, 105, 180);
+    private static final Color BG_WHITE  = new Color(255, 255, 255);
+    private static final Color DARK      = new Color(10, 10, 10);
+    private static final Color YELLOW    = new Color(255, 213, 0);
+    private static final Color GREEN     = new Color(34, 197, 94);
+    private static final Color GREEN_BG  = new Color(34, 197, 94);
+    private static final Color RED_LABEL = new Color(200, 30, 30);
+    private static final Color TEXT_GRAY = new Color(100, 100, 100);
+    private static final Color BORDER_LT = new Color(220, 220, 220);
+    private static final Color IMG_PH    = new Color(200, 220, 240); // placeholder bg
 
-    // ── Data ─────────────────────────────────────────────────────────────────
-    private final Property property;
+    // ── Data ──────────────────────────────────────────────────────────────────
+    private final Property         property;
     private final CustomerMapFrame parent;
-    private double finalPrice;
 
     // ── Components ────────────────────────────────────────────────────────────
-    private JLabel  propIdLabel, basePriceLabel, sqmLabel, facingLabel, zoningLabel;
+    private JLabel  propIdLabel, basePriceLabel, sqmLabel, facingLabel;
+    private JLabel  floorSqmLabel, bedroomsLabel, bathroomsLabel, processingFeeLabel;
     private JButton cashBtn, financingBtn;
     private JRadioButton bdoRadio, pagibigRadio, inhouseRadio;
-    private ButtonGroup payGroup;
+    private ButtonGroup  payGroup;
     private JSlider downpaySlider, termSlider;
     private JLabel  downpayLabel, termLabel;
-    private JLabel  finalPriceVal, principalVal, rateVal, monthlyPIVal, monthlyTotalVal;
-    private JPanel  financingOptionsPanel, breakdownPanel;
+    // Breakdown labels
+    private JLabel  lbFinalPrice, lbProcessingFee, lbReservFee,
+                    lbBalanceFee, lbPrincipal, lbRate,
+                    lbMonthlyPI, lbMonthlyTotal;
+    private JPanel  financingOptionsPanel;
     private JButton reserveBtn, purchaseBtn;
     private boolean isCash = true;
 
     public LotDetailFrame(Property property, CustomerMapFrame parent) {
         this.property = property;
         this.parent   = parent;
-        this.finalPrice = property.getPrice();
         initComponents();
         recalculate();
     }
@@ -69,7 +71,7 @@ public class LotDetailFrame extends javax.swing.JFrame {
     private void initComponents() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setTitle("LOT DETAIL — " + property.getId());
-        setPreferredSize(new Dimension(820, 680));
+        setPreferredSize(new Dimension(860, 700));
         setResizable(false);
         getContentPane().setBackground(BG_PINK);
         getContentPane().setLayout(new BorderLayout(10, 0));
@@ -83,94 +85,85 @@ public class LotDetailFrame extends javax.swing.JFrame {
         // ══════════════════════════════════════════════════════════════════════
         JPanel leftPanel = new JPanel(new BorderLayout(0, 8));
         leftPanel.setBackground(BG_PINK);
-        leftPanel.setPreferredSize(new Dimension(330, 660));
+        leftPanel.setPreferredSize(new Dimension(340, 680));
 
         // ── Header card ───────────────────────────────────────────────────────
         JPanel headerCard = new JPanel();
         headerCard.setBackground(BG_WHITE);
         headerCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(DARK, 3),
-                BorderFactory.createEmptyBorder(12, 14, 12, 14)));
-        headerCard.setLayout(new BorderLayout(8, 4));
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)));
+        headerCard.setLayout(new BorderLayout(6, 4));
 
         propIdLabel = new JLabel(property.getId());
-        propIdLabel.setFont(new Font("Courier New", Font.BOLD, 28));
+        propIdLabel.setFont(new Font("Courier New", Font.BOLD, 26));
         propIdLabel.setForeground(DARK);
 
-        basePriceLabel = new JLabel("BASE: ₱" + String.format("%,.0f", property.getPrice()));
-        basePriceLabel.setFont(new Font("Courier New", Font.BOLD, 13));
+        String typeStr = property.getHouseType() != null
+                ? property.getHouseType().displayName : "Unknown Type";
+        basePriceLabel = new JLabel("BASE: ₱" + String.format("%,.0f", property.getPrice())
+                + "   •   " + typeStr);
+        basePriceLabel.setFont(new Font("Courier New", Font.BOLD, 11));
         basePriceLabel.setBackground(YELLOW);
         basePriceLabel.setForeground(DARK);
         basePriceLabel.setOpaque(true);
         basePriceLabel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
 
-        JPanel specTags = new JPanel(new GridLayout(3, 1, 0, 2));
-        specTags.setOpaque(false);
-        sqmLabel    = tagLabel("SQM: " + property.getSqm());
-        facingLabel = tagLabel("FACING: " + property.getFacing());
-        zoningLabel = tagLabel("ZONING: RES-" + property.getBlockNumber());
-        specTags.add(sqmLabel);
-        specTags.add(facingLabel);
-        specTags.add(zoningLabel);
+        // Spec tags row
+        JPanel specRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        specRow.setOpaque(false);
+        sqmLabel     = tagLabel("LOT: " + property.getSqm() + " sqm");
+        facingLabel  = tagLabel("FACING: " + property.getFacing());
+        specRow.add(sqmLabel);
+        specRow.add(facingLabel);
 
-        JPanel headerTop = new JPanel(new BorderLayout());
-        headerTop.setOpaque(false);
-        headerTop.add(propIdLabel, BorderLayout.WEST);
-        headerTop.add(specTags, BorderLayout.EAST);
-
-        headerCard.add(headerTop, BorderLayout.NORTH);
+        headerCard.add(propIdLabel,    BorderLayout.NORTH);
+        headerCard.add(specRow,        BorderLayout.CENTER);
         headerCard.add(basePriceLabel, BorderLayout.SOUTH);
 
-        // ── Blueprint panel ───────────────────────────────────────────────────
-        JPanel blueprintCard = new JPanel(new BorderLayout(0, 6));
-        blueprintCard.setBackground(BG_WHITE);
-        blueprintCard.setBorder(BorderFactory.createCompoundBorder(
+        // ── House image panel ─────────────────────────────────────────────────
+        JPanel imageCard = new JPanel(new BorderLayout(0, 6));
+        imageCard.setBackground(BG_WHITE);
+        imageCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(DARK, 3),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)));
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
-        JPanel bpHeader = new JPanel(new BorderLayout());
-        bpHeader.setOpaque(false);
-        JLabel bpTitle = new JLabel("🏠 BLUEPRINT EXPLORER");
-        bpTitle.setFont(new Font("Courier New", Font.BOLD, 13));
-        bpTitle.setForeground(DARK);
-        bpHeader.add(bpTitle, BorderLayout.WEST);
+        // Image area
+        JPanel imgArea = buildImagePanel();
+        imageCard.add(imgArea, BorderLayout.CENTER);
 
-        JPanel bpCanvas = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                drawBlueprint(g);
-            }
-        };
-        bpCanvas.setBackground(BLUEPRINT);
-        bpCanvas.setPreferredSize(new Dimension(280, 200));
-        bpCanvas.setBorder(BorderFactory.createLineBorder(CYAN_DARK, 1));
-
-        blueprintCard.add(bpHeader, BorderLayout.NORTH);
-        blueprintCard.add(bpCanvas, BorderLayout.CENTER);
+        // Specs below image
+        JPanel specsCard = buildSpecsCard();
+        imageCard.add(specsCard, BorderLayout.SOUTH);
 
         leftPanel.add(headerCard, BorderLayout.NORTH);
-        leftPanel.add(blueprintCard, BorderLayout.CENTER);
+        leftPanel.add(imageCard,  BorderLayout.CENTER);
 
         // ══════════════════════════════════════════════════════════════════════
         // RIGHT PANEL — FINANCIAL TERMINAL
         // ══════════════════════════════════════════════════════════════════════
-        JPanel rightPanel = new JPanel(new BorderLayout(0, 8));
+        JPanel rightPanel = new JPanel(new BorderLayout(0, 0));
         rightPanel.setBackground(BG_WHITE);
         rightPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(DARK, 3),
-                BorderFactory.createEmptyBorder(14, 16, 14, 16)));
+                BorderFactory.createEmptyBorder(12, 14, 12, 14)));
+
+        JPanel rightInner = new JPanel();
+        rightInner.setBackground(BG_WHITE);
+        rightInner.setLayout(new BoxLayout(rightInner, BoxLayout.Y_AXIS));
 
         // ── FT Header ─────────────────────────────────────────────────────────
         JLabel ftTitle = new JLabel("🖩  FINANCIAL TERMINAL");
-        ftTitle.setFont(new Font("Courier New", Font.BOLD, 16));
+        ftTitle.setFont(new Font("Courier New", Font.BOLD, 15));
         ftTitle.setForeground(DARK);
+        ftTitle.setAlignmentX(LEFT_ALIGNMENT);
         ftTitle.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_LT));
 
-        // ── Payment method toggle ─────────────────────────────────────────────
+        // ── Cash / Financing toggle ────────────────────────────────────────────
         JPanel payToggle = new JPanel(new GridLayout(1, 2, 0, 0));
         payToggle.setBorder(BorderFactory.createLineBorder(DARK, 2));
-        payToggle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        payToggle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        payToggle.setAlignmentX(LEFT_ALIGNMENT);
 
         cashBtn      = new JButton("CASH");
         financingBtn = new JButton("FINANCING");
@@ -194,104 +187,114 @@ public class LotDetailFrame extends javax.swing.JFrame {
         payToggle.add(cashBtn);
         payToggle.add(financingBtn);
 
-        // ── Financing sub-options ─────────────────────────────────────────────
-        financingOptionsPanel = new JPanel(new GridLayout(0, 1, 0, 4));
+        // ── Financing sub-options ──────────────────────────────────────────────
+        financingOptionsPanel = new JPanel(new GridLayout(0, 1, 0, 3));
         financingOptionsPanel.setBackground(BG_WHITE);
-        financingOptionsPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
+        financingOptionsPanel.setAlignmentX(LEFT_ALIGNMENT);
+        financingOptionsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
 
         payGroup     = new ButtonGroup();
-        bdoRadio     = new JRadioButton("BDO Home Loan");
-        pagibigRadio = new JRadioButton("PAG-IBIG");
-        inhouseRadio = new JRadioButton("In-House");
-        for (JRadioButton rb : new JRadioButton[]{bdoRadio, pagibigRadio, inhouseRadio}) {
-            rb.setFont(new Font("Courier New", Font.PLAIN, 12));
-            rb.setBackground(BG_WHITE);
-            payGroup.add(rb);
-            rb.addActionListener(e -> recalculate());
-        }
+        bdoRadio     = styledRadio("BDO (7.25%)");
+        pagibigRadio = styledRadio("PAG-IBIG");
+        inhouseRadio = styledRadio("In-House (12%)");
+        payGroup.add(bdoRadio);
+        payGroup.add(pagibigRadio);
+        payGroup.add(inhouseRadio);
         bdoRadio.setSelected(true);
+        bdoRadio.addActionListener(e -> recalculate());
+        pagibigRadio.addActionListener(e -> recalculate());
+        inhouseRadio.addActionListener(e -> recalculate());
 
-        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        // GridLayout(1,3) ensures all 3 buttons always fit on one row
+        JPanel radioRow = new JPanel(new GridLayout(1, 3, 4, 0));
         radioRow.setBackground(BG_WHITE);
+        radioRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         radioRow.add(bdoRadio);
         radioRow.add(pagibigRadio);
         radioRow.add(inhouseRadio);
-        financingOptionsPanel.add(radioRow);
 
-        // ── Sliders ───────────────────────────────────────────────────────────
+        downpayLabel = new JLabel("DOWNPAYMENT (20%)      ₱0");
+        downpayLabel.setFont(new Font("Courier New", Font.PLAIN, 11));
+        downpayLabel.setForeground(DARK);
+
         downpaySlider = new JSlider(10, 50, 20);
         downpaySlider.setBackground(BG_WHITE);
         downpaySlider.addChangeListener((ChangeEvent e) -> recalculate());
+
+        termLabel = new JLabel("LOAN TERM   20 YEARS");
+        termLabel.setFont(new Font("Courier New", Font.PLAIN, 11));
+        termLabel.setForeground(DARK);
 
         termSlider = new JSlider(5, 30, 20);
         termSlider.setBackground(BG_WHITE);
         termSlider.addChangeListener((ChangeEvent e) -> recalculate());
 
-        downpayLabel = new JLabel("DOWNPAYMENT (20%)      ₱0");
-        downpayLabel.setFont(new Font("Courier New", Font.PLAIN, 12));
-        downpayLabel.setForeground(DARK);
-
-        termLabel = new JLabel("LOAN TERM                          20 YEARS");
-        termLabel.setFont(new Font("Courier New", Font.PLAIN, 12));
-        termLabel.setForeground(DARK);
-
-        JPanel sliderPanel = new JPanel(new GridLayout(0, 1, 0, 2));
-        sliderPanel.setBackground(BG_WHITE);
-        sliderPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, BORDER_LT));
-        sliderPanel.add(downpayLabel);
-        sliderPanel.add(downpaySlider);
-        sliderPanel.add(termLabel);
-        sliderPanel.add(termSlider);
-        financingOptionsPanel.add(sliderPanel);
+        financingOptionsPanel.add(radioRow);
+        financingOptionsPanel.add(downpayLabel);
+        financingOptionsPanel.add(downpaySlider);
+        financingOptionsPanel.add(termLabel);
+        financingOptionsPanel.add(termSlider);
         financingOptionsPanel.setVisible(false);
 
-        // ── Cost breakdown ────────────────────────────────────────────────────
-        breakdownPanel = new JPanel(new GridLayout(0, 1, 0, 3));
-        breakdownPanel.setBackground(BG_WHITE);
-        breakdownPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(2, 0, 0, 0, DARK),
-                BorderFactory.createEmptyBorder(8, 0, 8, 0)));
+        // ── Cost Breakdown ────────────────────────────────────────────────────
+        JPanel breakdownOuter = new JPanel(new BorderLayout());
+        breakdownOuter.setBackground(BG_WHITE);
+        breakdownOuter.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel breakdownTitle = new JLabel("COST BREAKDOWN");
-        breakdownTitle.setFont(new Font("Courier New", Font.BOLD, 13));
-        breakdownTitle.setBackground(DARK);
-        breakdownTitle.setForeground(Color.WHITE);
-        breakdownTitle.setOpaque(true);
-        breakdownTitle.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        JLabel breakTitle = new JLabel(" COST BREAKDOWN");
+        breakTitle.setFont(new Font("Courier New", Font.BOLD, 12));
+        breakTitle.setBackground(DARK);
+        breakTitle.setForeground(Color.WHITE);
+        breakTitle.setOpaque(true);
+        breakTitle.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
-        finalPriceVal  = breakdownRow("Final Price:");
-        principalVal   = breakdownRow("Principal:");
-        rateVal        = breakdownRow("Rate:");
-        monthlyPIVal   = breakdownRow("Mortgage P&I:");
+        JPanel breakRows = new JPanel(new GridLayout(0, 1, 0, 3));
+        breakRows.setBackground(BG_WHITE);
+        breakRows.setBorder(BorderFactory.createEmptyBorder(6, 0, 4, 0));
 
-        // Monthly total highlight
-        JPanel monthlyTotal = new JPanel(new BorderLayout());
-        monthlyTotal.setBackground(GREEN_BG);
-        monthlyTotal.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        lbFinalPrice    = breakdownRow();
+        lbProcessingFee = breakdownRow();
+        lbReservFee     = breakdownRow();
+        lbBalanceFee    = breakdownRow();
+        lbPrincipal     = breakdownRow();
+        lbRate          = breakdownRow();
+        lbMonthlyPI     = breakdownRow();
+
+        breakRows.add(lbFinalPrice);
+        breakRows.add(lbProcessingFee);
+        breakRows.add(lbReservFee);
+        breakRows.add(lbBalanceFee);
+        breakRows.add(new JSeparator());
+        breakRows.add(lbPrincipal);
+        breakRows.add(lbRate);
+        breakRows.add(lbMonthlyPI);
+
+        // Monthly total highlight bar
+        JPanel monthlyBar = new JPanel(new BorderLayout());
+        monthlyBar.setBackground(GREEN_BG);
+        monthlyBar.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        monthlyBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        monthlyBar.setAlignmentX(LEFT_ALIGNMENT);
         JLabel estLbl = new JLabel("EST. MONTHLY");
         estLbl.setFont(new Font("Courier New", Font.BOLD, 13));
         estLbl.setForeground(DARK);
-        monthlyTotalVal = new JLabel("₱0");
-        monthlyTotalVal.setFont(new Font("Courier New", Font.BOLD, 16));
-        monthlyTotalVal.setForeground(DARK);
-        monthlyTotal.add(estLbl, BorderLayout.WEST);
-        monthlyTotal.add(monthlyTotalVal, BorderLayout.EAST);
+        lbMonthlyTotal = new JLabel("₱0");
+        lbMonthlyTotal.setFont(new Font("Courier New", Font.BOLD, 18));
+        lbMonthlyTotal.setForeground(DARK);
+        monthlyBar.add(estLbl,         BorderLayout.WEST);
+        monthlyBar.add(lbMonthlyTotal, BorderLayout.EAST);
 
-        breakdownPanel.add(breakdownTitle);
-        breakdownPanel.add(finalPriceVal);
-        breakdownPanel.add(principalVal);
-        breakdownPanel.add(rateVal);
-        breakdownPanel.add(monthlyPIVal);
-        breakdownPanel.add(new JSeparator());
-        breakdownPanel.add(monthlyTotal);
+        breakdownOuter.add(breakTitle, BorderLayout.NORTH);
+        breakdownOuter.add(breakRows,  BorderLayout.CENTER);
 
         // ── Action buttons ────────────────────────────────────────────────────
         JPanel actionRow = new JPanel(new GridLayout(1, 2, 8, 0));
         actionRow.setBackground(BG_WHITE);
-        actionRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        actionRow.setAlignmentX(LEFT_ALIGNMENT);
+        actionRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-        reserveBtn = new JButton("RESERVE (₱20K)");
-        reserveBtn.setFont(new Font("Courier New", Font.BOLD, 13));
+        reserveBtn = new JButton();   // text set in recalculate()
+        reserveBtn.setFont(new Font("Courier New", Font.BOLD, 12));
         reserveBtn.setBackground(YELLOW);
         reserveBtn.setForeground(DARK);
         reserveBtn.setBorder(BorderFactory.createLineBorder(DARK, 2));
@@ -300,7 +303,7 @@ public class LotDetailFrame extends javax.swing.JFrame {
         reserveBtn.addActionListener(this::reserveBtnActionPerformed);
 
         purchaseBtn = new JButton("$ INITIATE PURCHASE");
-        purchaseBtn.setFont(new Font("Courier New", Font.BOLD, 13));
+        purchaseBtn.setFont(new Font("Courier New", Font.BOLD, 12));
         purchaseBtn.setBackground(DARK);
         purchaseBtn.setForeground(Color.WHITE);
         purchaseBtn.setBorder(BorderFactory.createLineBorder(DARK, 2));
@@ -311,22 +314,23 @@ public class LotDetailFrame extends javax.swing.JFrame {
         actionRow.add(reserveBtn);
         actionRow.add(purchaseBtn);
 
-        // ── Assemble right panel ──────────────────────────────────────────────
-        JPanel rightInner = new JPanel();
-        rightInner.setBackground(BG_WHITE);
-        rightInner.setLayout(new BoxLayout(rightInner, BoxLayout.Y_AXIS));
+        // Assemble right inner
         rightInner.add(ftTitle);
-        rightInner.add(Box.createVerticalStrut(8));
+        rightInner.add(Box.createVerticalStrut(6));
         rightInner.add(payToggle);
-        rightInner.add(Box.createVerticalStrut(6));
+        rightInner.add(Box.createVerticalStrut(4));
         rightInner.add(financingOptionsPanel);
-        rightInner.add(Box.createVerticalStrut(6));
-        rightInner.add(breakdownPanel);
+        rightInner.add(Box.createVerticalStrut(4));
+        rightInner.add(breakdownOuter);
+        rightInner.add(Box.createVerticalStrut(4));
+        rightInner.add(monthlyBar);
+        rightInner.add(Box.createVerticalStrut(8));
+        rightInner.add(new JSeparator());
+        rightInner.add(Box.createVerticalStrut(8));
         rightInner.add(actionRow);
 
-        rightPanel.add(rightInner, BorderLayout.CENTER);
+        rightPanel.add(rightInner, BorderLayout.NORTH);
 
-        // ── Assemble outer ────────────────────────────────────────────────────
         outerPad.add(leftPanel,  BorderLayout.WEST);
         outerPad.add(rightPanel, BorderLayout.CENTER);
         getContentPane().add(outerPad, BorderLayout.CENTER);
@@ -335,92 +339,152 @@ public class LotDetailFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    // ── Blueprint drawing ──────────────────────────────────────────────────────
+    // ── Image panel ────────────────────────────────────────────────────────────
 
-    private void drawBlueprint(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        int w = 280, h = 200;
-        int pad = 12;
+    private JPanel buildImagePanel() {
+        JPanel imgPanel = new JPanel(new BorderLayout());
+        imgPanel.setBackground(IMG_PH);
+        imgPanel.setPreferredSize(new Dimension(320, 200));
 
-        // Grid lines
-        g2.setColor(new Color(0, 60, 120));
-        g2.setStroke(new BasicStroke(0.5f));
-        for (int x = pad; x < w - pad; x += 16) g2.drawLine(x, pad, x, h - pad);
-        for (int y = pad; y < h - pad; y += 16) g2.drawLine(pad, y, w - pad, y);
+        HouseType ht = property.getHouseType();
+        if (ht != null) {
+            String fileName = ht.getImageFileName();
+            if (fileName != null) {
+                URL imgUrl = getClass().getResource("images/" + fileName);
+                if (imgUrl != null) {
+                    ImageIcon icon = new ImageIcon(imgUrl);
+                    // Scale to fit
+                    Image scaled = icon.getImage().getScaledInstance(320, 200, Image.SCALE_SMOOTH);
+                    JLabel imgLabel = new JLabel(new ImageIcon(scaled));
+                    imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    imgPanel.setBackground(Color.BLACK);
+                    imgPanel.add(imgLabel, BorderLayout.CENTER);
+                    return imgPanel;
+                }
+            }
+        }
 
-        // Outer walls
-        g2.setColor(BP_LINE);
-        g2.setStroke(new BasicStroke(2));
-        g2.drawRect(pad + 8, pad + 8, w - pad * 2 - 16, h - pad * 2 - 16);
-
-        // Rooms
-        int ox = pad + 8, oy = pad + 8;
-        int fw = w - pad * 2 - 16, fh = h - pad * 2 - 16;
-
-        g2.setStroke(new BasicStroke(1.5f));
-        // Living (top-left)
-        g2.drawRect(ox, oy, fw / 2, (int)(fh * 0.55));
-        drawRoomLabel(g2, "LIVING", ox + fw / 4, oy + (int)(fh * 0.27));
-
-        // Kitchen (top-right)
-        g2.drawRect(ox + fw / 2, oy, fw / 2, (int)(fh * 0.55));
-        drawRoomLabel(g2, "KITCHEN", ox + (int)(fw * 0.75), oy + (int)(fh * 0.27));
-
-        // Garage/Utilities (bottom)
-        g2.drawRect(ox, oy + (int)(fh * 0.55), fw, (int)(fh * 0.45));
-        drawRoomLabel(g2, "GARAGE / UTILITIES", ox + fw / 2, oy + (int)(fh * 0.775));
+        // Fallback placeholder
+        imgPanel.setBackground(IMG_PH);
+        JPanel ph = new JPanel();
+        ph.setBackground(IMG_PH);
+        ph.setLayout(new BoxLayout(ph, BoxLayout.Y_AXIS));
+        JLabel icon = new JLabel("🏠");
+        icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 52));
+        icon.setAlignmentX(CENTER_ALIGNMENT);
+        JLabel msg = new JLabel("Image not found");
+        msg.setFont(new Font("Courier New", Font.ITALIC, 11));
+        msg.setForeground(TEXT_GRAY);
+        msg.setAlignmentX(CENTER_ALIGNMENT);
+        JLabel hint = new JLabel("Place " + (property.getHouseType() != null
+                ? property.getHouseType().getImageFileName() : "image")
+                + " in ui/images/");
+        hint.setFont(new Font("Courier New", Font.PLAIN, 10));
+        hint.setForeground(TEXT_GRAY);
+        hint.setAlignmentX(CENTER_ALIGNMENT);
+        ph.add(Box.createVerticalGlue());
+        ph.add(icon);
+        ph.add(Box.createVerticalStrut(6));
+        ph.add(msg);
+        ph.add(hint);
+        ph.add(Box.createVerticalGlue());
+        imgPanel.add(ph, BorderLayout.CENTER);
+        return imgPanel;
     }
 
-    private void drawRoomLabel(Graphics2D g2, String text, int cx, int cy) {
-        g2.setColor(BP_LINE);
-        g2.setFont(new Font("Courier New", Font.BOLD, 9));
-        FontMetrics fm = g2.getFontMetrics();
-        int tw = fm.stringWidth(text);
-        g2.drawString(text, cx - tw / 2, cy + fm.getAscent() / 2);
+    private JPanel buildSpecsCard() {
+        HouseType ht = property.getHouseType();
+        JPanel card = new JPanel(new GridLayout(0, 2, 4, 4));
+        card.setBackground(new Color(248, 248, 248));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_LT),
+                BorderFactory.createEmptyBorder(8, 4, 4, 4)));
+
+        card.add(specLabel("Lot Area:"));
+        card.add(specValue(property.getSqm() + " sqm"));
+
+        if (ht != null) {
+            card.add(specLabel("Floor Area:"));
+            card.add(specValue(ht.floorSqm + " sqm"));
+            card.add(specLabel("Bedrooms:"));
+            card.add(specValue(String.valueOf(ht.bedrooms)));
+            card.add(specLabel("Bathrooms:"));
+            card.add(specValue(String.valueOf(ht.bathrooms)));
+        }
+
+        card.add(specLabel("Facing:"));
+        card.add(specValue(property.getFacing()));
+        card.add(specLabel("Block:"));
+        card.add(specValue("Block " + property.getBlockNumber()));
+
+        return card;
     }
 
-    // ── Calculation ───────────────────────────────────────────────────────────
+    // ── Calculation ────────────────────────────────────────────────────────────
 
     private void recalculate() {
-        double price = property.getPrice();
+        HouseType ht        = property.getHouseType();
+        double finalPrice   = property.getPrice();
+        double resvFee      = property.getReservationFee();
+        double procFee      = property.getProcessingFee();
+        double balanceFee   = procFee - resvFee;       // balance after reservation
+
+        // Update reserve button text with correct fee
+        reserveBtn.setText("RESERVE  (₱" + String.format("%,.0f", resvFee) + ")");
+
+        // Fill fixed rows (same for cash and financing)
+        setRow(lbFinalPrice,    "Total Contract Price:",
+                "₱" + fmt(finalPrice), RED_LABEL);
+        setRow(lbProcessingFee, "Processing Fee:",
+                "₱" + fmt(procFee), TEXT_GRAY);
+        setRow(lbReservFee,     "Less Reservation Fee:",
+                "₱" + fmt(resvFee), TEXT_GRAY);
+        setRow(lbBalanceFee,    "Balance Proc. Fee (6 mos):",
+                "₱" + fmt(balanceFee), TEXT_GRAY);
 
         if (isCash) {
-            // Cash: no monthly payment
-            updateBreakdownRow(finalPriceVal,  "Final Price:",   String.format("₱%,.2f", price));
-            updateBreakdownRow(principalVal,   "Principal:",     "N/A (full cash)");
-            updateBreakdownRow(rateVal,        "Rate:",          "0%");
-            updateBreakdownRow(monthlyPIVal,   "Mortgage P&I:",  "₱0.00 /mo");
-            monthlyTotalVal.setText("CASH — ₱" + String.format("%,.0f", price));
+            setRow(lbPrincipal,  "Principal:",     "N/A — full cash", TEXT_GRAY);
+            setRow(lbRate,       "Interest Rate:", "0%", TEXT_GRAY);
+            setRow(lbMonthlyPI,  "Mortgage P&I:",  "₱0.00 /mo", TEXT_GRAY);
+            lbMonthlyTotal.setText("CASH — ₱" + fmt(finalPrice));
         } else {
-            // Financing
-            int downPct  = downpaySlider.getValue();
-            int years    = termSlider.getValue();
-            double down  = price * downPct / 100.0;
-            double principal = price - down;
-            PaymentStrategy strategy = getSelectedStrategy();
-            double monthly = strategy.calculateMonthlyPayment(principal, years);
-            double rate    = strategy.getInterestRate();
+            int    downPct    = downpaySlider.getValue();
+            int    years      = termSlider.getValue();
+            double down       = finalPrice * downPct / 100.0;
+            double principal  = finalPrice - down;
 
-            downpayLabel.setText(String.format("DOWNPAYMENT (%d%%)      ₱%,.0f", downPct, down));
-            termLabel.setText(String.format("LOAN TERM   %28s", years + " YEARS"));
+            downpayLabel.setText(String.format("DOWNPAYMENT (%d%%)      ₱%s",
+                    downPct, fmt(down)));
+            termLabel.setText(String.format("LOAN TERM   %d YEARS", years));
 
-            updateBreakdownRow(finalPriceVal, "Final Price:",  String.format("₱%,.2f", price));
-            updateBreakdownRow(principalVal,  "Principal:",    String.format("₱%,.2f", principal));
-            updateBreakdownRow(rateVal,       "Rate (" + strategyName() + "):", String.format("%.2f%%", rate * 100));
-            updateBreakdownRow(monthlyPIVal,  "Mortgage P&I:", String.format("₱%,.2f /mo", monthly));
-            monthlyTotalVal.setText(String.format("₱%,.0f /mo", monthly));
+            PaymentStrategy strategy = getSelectedStrategy(ht);
+            double monthly  = strategy.calculateMonthlyPayment(principal, years);
+            double rate     = strategy.getInterestRate();
+
+            setRow(lbPrincipal, "Principal (after DP):",
+                    "₱" + fmt(principal), TEXT_GRAY);
+            setRow(lbRate,      "Rate (" + strategyName(ht) + "):",
+                    String.format("%.3f%%", rate * 100), TEXT_GRAY);
+            setRow(lbMonthlyPI, "Mortgage P&I:",
+                    String.format("₱%s /mo", fmt(monthly)), DARK);
+            lbMonthlyTotal.setText(String.format("₱%s /mo", fmt(monthly)));
         }
     }
 
-    private PaymentStrategy getSelectedStrategy() {
-        if (pagibigRadio.isSelected()) return new PagIbigLoan();
+    private PaymentStrategy getSelectedStrategy(HouseType ht) {
+        if (pagibigRadio.isSelected()) {
+            double rate = (ht != null) ? ht.getPagIbigRate() : 0.065;
+            return new PagIbigLoan(rate);
+        }
         if (inhouseRadio.isSelected()) return new InHouseFinancing();
         return new BDOLoan();
     }
 
-    private String strategyName() {
-        if (pagibigRadio.isSelected()) return "PAG-IBIG";
+    private String strategyName(HouseType ht) {
+        if (pagibigRadio.isSelected()) {
+            double rate = (ht != null) ? ht.getPagIbigRate() * 100 : 6.5;
+            return String.format("PAG-IBIG %.3f%%", rate);
+        }
         if (inhouseRadio.isSelected()) return "In-House";
         return "BDO";
     }
@@ -434,8 +498,10 @@ public class LotDetailFrame extends javax.swing.JFrame {
                     "Unavailable", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        double resvFee = property.getReservationFee();
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Reserve " + property.getId() + " for ₱20,000?",
+                "Reserve " + property.getId()
+                + " for ₱" + String.format("%,.0f", resvFee) + "?",
                 "Confirm Reservation", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             AppState.currentCustomer.submitReservation(property, AppState.agent);
@@ -454,12 +520,14 @@ public class LotDetailFrame extends javax.swing.JFrame {
                     "Unavailable", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        PaymentStrategy strategy = isCash ? new CashPayment() : getSelectedStrategy();
-        String payLabel = isCash ? "Cash" : strategyName();
+        HouseType ht = property.getHouseType();
+        PaymentStrategy strategy = isCash ? new CashPayment() : getSelectedStrategy(ht);
+        String payLabel = isCash ? "Cash" : strategyName(ht);
+
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Purchase " + property.getId() +
-                " for ₱" + String.format("%,.2f", property.getPrice()) +
-                "\nPayment method: " + payLabel + "?",
+                "Purchase " + property.getId()
+                + "\nPrice: ₱" + String.format("%,.2f", property.getPrice())
+                + "\nPayment: " + payLabel + "?",
                 "Confirm Purchase", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             AppState.currentCustomer.submitPurchase(property, AppState.agent, strategy);
@@ -471,15 +539,22 @@ public class LotDetailFrame extends javax.swing.JFrame {
         }
     }
 
-    // ── UI Helpers ────────────────────────────────────────────────────────────
+    // ── UI Helpers ─────────────────────────────────────────────────────────────
 
     private void styleCashBtn(JButton b, boolean active) {
-        b.setFont(new Font("Courier New", Font.BOLD, 13));
+        b.setFont(new Font("Courier New", Font.BOLD, 12));
         b.setBackground(active ? DARK : BG_WHITE);
         b.setForeground(active ? Color.WHITE : DARK);
         b.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
         b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
+
+    private JRadioButton styledRadio(String text) {
+        JRadioButton rb = new JRadioButton(text);
+        rb.setFont(new Font("Courier New", Font.PLAIN, 11));
+        rb.setBackground(BG_WHITE);
+        return rb;
     }
 
     private JLabel tagLabel(String text) {
@@ -494,15 +569,37 @@ public class LotDetailFrame extends javax.swing.JFrame {
         return l;
     }
 
-    private JLabel breakdownRow(String label) {
-        JLabel l = new JLabel(label + "   —");
-        l.setFont(new Font("Courier New", Font.PLAIN, 12));
+    private JLabel breakdownRow() {
+        JLabel l = new JLabel("—");
+        l.setFont(new Font("Courier New", Font.PLAIN, 11));
         l.setForeground(TEXT_GRAY);
         return l;
     }
 
-    private void updateBreakdownRow(JLabel lbl, String label, String value) {
-        lbl.setText(String.format("%-22s %s", label, value));
+    private void setRow(JLabel lbl, String label, String value, Color valueColor) {
+        lbl.setText(String.format("<html><span style='color:#646464'>%-30s</span>"
+                + "<b style='color:#%s'>%s</b></html>",
+                label,
+                String.format("%06X", valueColor.getRGB() & 0xFFFFFF),
+                value));
+    }
+
+    private JLabel specLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Courier New", Font.PLAIN, 11));
+        l.setForeground(TEXT_GRAY);
+        return l;
+    }
+
+    private JLabel specValue(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Courier New", Font.BOLD, 11));
+        l.setForeground(DARK);
+        return l;
+    }
+
+    private String fmt(double v) {
+        return String.format("%,.2f", v);
     }
 
     public static void main(String args[]) {
