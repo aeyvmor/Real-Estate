@@ -45,7 +45,7 @@ public class AdminFrame extends javax.swing.JFrame {
     // ── Components ────────────────────────────────────────────────────────────
     private JPanel      topBar, statsRow, contentRow, leftCol, rightCol;
     private JLabel      titleLabel, versionLabel, pulseIcon;
-    private JButton     logoutBtn, reportBtn, filterBtn, clearFilterBtn, addPropBtn;
+    private JButton     logoutBtn, reportBtn, filterBtn, clearFilterBtn, addPropBtn, removePropBtn;
     private JLabel      statTotalVal, statSoldVal, statRevVal;
     private JScrollPane scrollPane;
     private JTable      propTable;
@@ -228,9 +228,18 @@ public class AdminFrame extends javax.swing.JFrame {
         statusBar.setFont(MONO_XS);
         statusBar.setForeground(TEXT_DIM);
 
-        leftCol.add(dbHeader,   BorderLayout.NORTH);
-        leftCol.add(scrollPane, BorderLayout.CENTER);
-        leftCol.add(statusBar,  BorderLayout.SOUTH);
+        removePropBtn = makeBtn("-- REMOVE SELECTED --", RED, BG, 200, 28);
+        removePropBtn.addActionListener(this::removePropBtnActionPerformed);
+
+        JPanel tableBottomBar = new JPanel(new BorderLayout(8, 0));
+        tableBottomBar.setBackground(BG);
+        tableBottomBar.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+        tableBottomBar.add(statusBar,    BorderLayout.CENTER);
+        tableBottomBar.add(removePropBtn, BorderLayout.EAST);
+
+        leftCol.add(dbHeader,       BorderLayout.NORTH);
+        leftCol.add(scrollPane,     BorderLayout.CENTER);
+        leftCol.add(tableBottomBar, BorderLayout.SOUTH);
 
         // ── RIGHT: inject form ────────────────────────────────────────────────
         rightCol = new JPanel(new BorderLayout());
@@ -492,6 +501,33 @@ public class AdminFrame extends javax.swing.JFrame {
                     "Please fill in all fields with valid numbers.",
                     "Input Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void removePropBtnActionPerformed(java.awt.event.ActionEvent evt) {
+        int row = propTable.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Select a property from the table first.",
+                    "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String id     = tableModel.getValueAt(row, 0).toString();
+        String status = tableModel.getValueAt(row, 7).toString();
+        if (!status.equals("AVAILABLE")) {
+            JOptionPane.showMessageDialog(this,
+                    "Only AVAILABLE properties can be removed.\n"
+                    + id + " is currently " + status + ".",
+                    "Cannot Remove", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Remove property " + id + "? This cannot be undone.",
+                "Confirm Removal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        AppState.admin.removeProperty(id);
+        refreshTable(AppState.admin.getProperties());
+        refreshStats();
     }
 
     private void reportBtnActionPerformed(java.awt.event.ActionEvent evt) {

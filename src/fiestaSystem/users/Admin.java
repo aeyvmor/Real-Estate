@@ -13,28 +13,30 @@ public class Admin extends User {
     public Admin(String id, String name) {
         super(id, name, "ADMIN");
         this.properties = new ArrayList<>();
-        // seedData(); // commented out — admin adds lots manually via UI
+        seedData();
     }
 
-    /*
     private void seedData() {
-        // Kept for reference. Uncomment to pre-populate for testing.
-        HouseType[] types = {
-            HouseType.ROW_BARE, HouseType.ROW_IMPROVED,
-            HouseType.ROW_IMPROVED_END, HouseType.DUPLEX_2BR, HouseType.DUPLEX_3BR
-        };
         String[] facings = {"NORTH", "SOUTH", "EAST", "WEST"};
         for (int block = 1; block <= 5; block++) {
-            HouseType ht = types[block - 1];
             for (int lot = 1; lot <= 20; lot++) {
-                double price = ht.basePrice + (lot * 5000);
+                HouseType ht;
+                switch (block) {
+                    case 1:  ht = HouseType.ROW_BARE;     break;
+                    case 2:
+                    case 3:  ht = (lot == 1 || lot == 20)
+                                  ? HouseType.ROW_IMPROVED_END
+                                  : HouseType.ROW_IMPROVED; break;
+                    case 4:  ht = HouseType.DUPLEX_2BR;   break;
+                    default: ht = HouseType.DUPLEX_3BR;   break;
+                }
+                double price  = ht.basePrice + (lot * 5000);
                 String facing = facings[lot % 4];
                 properties.add(new Property(block, lot, price, ht.lotSqm, facing, ht));
             }
         }
         System.out.println("Seeded " + properties.size() + " properties.");
     }
-    */
 
     @Override
     public void login() {
@@ -44,6 +46,17 @@ public class Admin extends User {
     public void addProperty(Property p) {
         properties.add(p);
         System.out.println("Property added: " + p.getId());
+    }
+
+    public boolean removeProperty(String id) {
+        for (int i = 0; i < properties.size(); i++) {
+            if (properties.get(i).getId().equals(id)) {
+                properties.remove(i);
+                System.out.println("Property removed: " + id);
+                return true;
+            }
+        }
+        return false;
     }
 
     public ArrayList<Property> getProperties() {

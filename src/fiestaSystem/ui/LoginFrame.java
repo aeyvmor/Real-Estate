@@ -178,18 +178,16 @@ public class LoginFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_agentBtnActionPerformed
 
     private void customerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customerBtnActionPerformed
-    String name = JOptionPane.showInputDialog(
-        this, "Enter your name:", "Customer Login", JOptionPane.PLAIN_MESSAGE);
-    
-        if (name == null || name.trim().isEmpty()) 
+        String name = JOptionPane.showInputDialog(
+            this, "Enter your name:", "Customer Login", JOptionPane.PLAIN_MESSAGE);
+
+        if (name == null || name.trim().isEmpty())
             return;
-        
-    AppState.currentCustomer = new fiestaSystem.users.Customer(
-        "C-" + System.currentTimeMillis(), name.trim());
-        
-    AppState.currentCustomer.login();
-    new CustomerMapFrame().setVisible(true);
-    dispose();
+
+        AppState.currentCustomer = AppState.getOrCreateCustomer(name);
+        AppState.currentCustomer.login();
+        new CustomerMapFrame().setVisible(true);
+        dispose();
     }//GEN-LAST:event_customerBtnActionPerformed
 
     /**

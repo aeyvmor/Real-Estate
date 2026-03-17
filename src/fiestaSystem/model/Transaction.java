@@ -10,16 +10,18 @@ public class Transaction {
 
     private String id;
     private Property property;
+    private String customerId;
     private String customerName;
     private double amount;
     private TransactionType type;
     private TransactionStatus status;
     private PaymentStrategy paymentMethod;
 
-    public Transaction(String id, Property property, String customerName,
+    public Transaction(String id, Property property, String customerId, String customerName,
                        double amount, TransactionType type, PaymentStrategy paymentMethod) {
         this.id = id;
         this.property = property;
+        this.customerId = customerId;
         this.customerName = customerName;
         this.amount = amount;
         this.type = type;
@@ -49,6 +51,7 @@ public class Transaction {
 
     public String getId()                     { return id; }
     public Property getProperty()             { return property; }
+    public String getCustomerId()             { return customerId; }
     public String getCustomerName()           { return customerName; }
     public double getAmount()                 { return amount; }
     public TransactionType getType()          { return type; }

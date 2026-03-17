@@ -225,6 +225,14 @@ public class CustomerMapFrame extends javax.swing.JFrame {
         if (AppState.currentCustomer != null) {
             displayedProps = AppState.currentCustomer.filterProperties(
                     AppState.admin.getProperties(), blockSel, minSqm, maxPrice);
+            // Always include this customer's own reserved properties regardless of filter
+            for (Property p : AppState.admin.getProperties()) {
+                if (p.getStatus() == PropertyStatus.RESERVED
+                        && AppState.currentCustomer.ownsProperty(p)
+                        && !displayedProps.contains(p)) {
+                    displayedProps.add(p);
+                }
+            }
         } else {
             // fallback: show all (shouldn't reach here normally)
             displayedProps = new ArrayList<>(AppState.admin.getProperties());
@@ -277,10 +285,18 @@ public class CustomerMapFrame extends javax.swing.JFrame {
             for (Property p : displayedProps) highlightIds.add(p.getId());
         }
 
+        // Build owned IDs for the current customer
+        java.util.Set<String> ownedIds = new java.util.HashSet<>();
+        if (AppState.currentCustomer != null) {
+            for (Property p : allProps) {
+                if (AppState.currentCustomer.ownsProperty(p)) ownedIds.add(p.getId());
+            }
+        }
+
         for (int b = 1; b <= maxBlock; b++) {
             for (int l = 1; l <= maxLot; l++) {
                 Property p = propMap.get(b + "_" + l);
-                JPanel cell = makeLotCell(p, highlightIds);
+                JPanel cell = makeLotCell(p, highlightIds, ownedIds);
                 gridInner.add(cell);
             }
         }
@@ -289,12 +305,15 @@ public class CustomerMapFrame extends javax.swing.JFrame {
         gridInner.repaint();
     }
 
-    private JPanel makeLotCell(Property p, java.util.Set<String> highlightIds) {
+    private JPanel makeLotCell(Property p, java.util.Set<String> highlightIds,
+                               java.util.Set<String> ownedIds) {
         // Dim cell if filtered out
-        boolean highlighted = (p != null) && highlightIds.contains(p.getId());
-        boolean filterActive = (displayedProps != null) &&
+        boolean highlighted   = (p != null) && highlightIds.contains(p.getId());
+        boolean isOwnedRsvd   = (p != null) && (p.getStatus() == PropertyStatus.RESERVED)
+                                             && ownedIds.contains(p.getId());
+        boolean filterActive  = (displayedProps != null) &&
                                (displayedProps.size() < AppState.admin.getProperties().size());
-        boolean dimmed = filterActive && !highlighted;
+        boolean dimmed = filterActive && !highlighted && !isOwnedRsvd;
 
         JPanel cell = new JPanel() {
             @Override
@@ -333,7 +352,8 @@ public class CustomerMapFrame extends javax.swing.JFrame {
 
         // Background based on status
         Color cellBg;
-        switch (p.getStatus()) {
+        if (isOwnedRsvd)                             cellBg = new Color(200, 255, 220); // mint green
+        else switch (p.getStatus()) {
             case SOLD:     cellBg = new Color(240, 200, 200); break;
             case RESERVED: cellBg = new Color(255, 245, 180); break;
             default:       cellBg = AVAIL_BG;
@@ -341,8 +361,9 @@ public class CustomerMapFrame extends javax.swing.JFrame {
         if (dimmed) cellBg = new Color(200, 200, 200);
         cell.setBackground(cellBg);
 
-        Color borderColor = dimmed ? new Color(180, 180, 180) : AVAIL_BDR;
-        int bw = highlighted ? 2 : 1;
+        Color borderColor = isOwnedRsvd ? new Color(0, 180, 90)
+                          : dimmed      ? new Color(180, 180, 180) : AVAIL_BDR;
+        int bw = (highlighted || isOwnedRsvd) ? 2 : 1;
         cell.setBorder(BorderFactory.createLineBorder(borderColor, bw));
 
         // Lot label (top-left)
@@ -353,13 +374,26 @@ public class CustomerMapFrame extends javax.swing.JFrame {
         cell.add(lotLbl, BorderLayout.NORTH);
 
         // Status badge (center)
-        if (p.getStatus() != PropertyStatus.AVAILABLE) {
+        if (isOwnedRsvd) {
+            JLabel badge = new JLabel("YOURS") {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.rotate(Math.toRadians(-30), getWidth() / 2.0, getHeight() / 2.0);
+                    super.paintComponent(g);
+                }
+            };
+            badge.setFont(new Font("Courier New", Font.BOLD, 11));
+            badge.setForeground(new Color(0, 140, 60));
+            badge.setHorizontalAlignment(SwingConstants.CENTER);
+            cell.add(badge, BorderLayout.CENTER);
+        } else if (p.getStatus() != PropertyStatus.AVAILABLE) {
             String tag = p.getStatus() == PropertyStatus.SOLD ? "SOLD" : "RSVD";
             JLabel badge = new JLabel(tag) {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g;
-                    // Rotate 45 degrees
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     g2.rotate(Math.toRadians(-30), getWidth() / 2.0, getHeight() / 2.0);
                     super.paintComponent(g);
@@ -371,18 +405,21 @@ public class CustomerMapFrame extends javax.swing.JFrame {
             cell.add(badge, BorderLayout.CENTER);
         }
 
-        // Click only on AVAILABLE and not dimmed
-        if (p.getStatus() == PropertyStatus.AVAILABLE && !dimmed) {
+        // Click on AVAILABLE (not dimmed) OR own reserved property
+        if ((p.getStatus() == PropertyStatus.AVAILABLE && !dimmed) || isOwnedRsvd) {
+            final Color normalBg    = cellBg;
+            final Color hoverBg     = isOwnedRsvd ? new Color(160, 240, 190) : new Color(200, 240, 255);
+            final Color hoverBorder = isOwnedRsvd ? new Color(0, 180, 90)    : new Color(0, 150, 220);
             cell.setCursor(new Cursor(Cursor.HAND_CURSOR));
             cell.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    cell.setBackground(new Color(200, 240, 255));
-                    cell.setBorder(BorderFactory.createLineBorder(new Color(0, 150, 220), 2));
+                    cell.setBackground(hoverBg);
+                    cell.setBorder(BorderFactory.createLineBorder(hoverBorder, 2));
                 }
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    cell.setBackground(AVAIL_BG);
+                    cell.setBackground(normalBg);
                     cell.setBorder(BorderFactory.createLineBorder(borderColor, bw));
                 }
                 @Override

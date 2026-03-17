@@ -58,6 +58,7 @@ public class LotDetailFrame extends javax.swing.JFrame {
                     lbMonthlyPI, lbMonthlyTotal;
     private JPanel  financingOptionsPanel;
     private JButton reserveBtn, purchaseBtn;
+    private JLabel  ownedBanner;
     private boolean isCash = true;
 
     public LotDetailFrame(Property property, CustomerMapFrame parent) {
@@ -151,6 +152,17 @@ public class LotDetailFrame extends javax.swing.JFrame {
         JPanel rightInner = new JPanel();
         rightInner.setBackground(BG_WHITE);
         rightInner.setLayout(new BoxLayout(rightInner, BoxLayout.Y_AXIS));
+
+        // ── Owned reservation banner (hidden unless applicable) ───────────────
+        ownedBanner = new JLabel("  ★ YOUR RESERVED UNIT — Proceed to Purchase Below");
+        ownedBanner.setFont(new Font("Courier New", Font.BOLD, 11));
+        ownedBanner.setBackground(new Color(34, 197, 94));
+        ownedBanner.setForeground(Color.WHITE);
+        ownedBanner.setOpaque(true);
+        ownedBanner.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+        ownedBanner.setAlignmentX(LEFT_ALIGNMENT);
+        ownedBanner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        ownedBanner.setVisible(isOwnedReservation());
 
         // ── FT Header ─────────────────────────────────────────────────────────
         JLabel ftTitle = new JLabel("🖩  FINANCIAL TERMINAL");
@@ -315,6 +327,8 @@ public class LotDetailFrame extends javax.swing.JFrame {
         actionRow.add(purchaseBtn);
 
         // Assemble right inner
+        rightInner.add(ownedBanner);
+        rightInner.add(Box.createVerticalStrut(4));
         rightInner.add(ftTitle);
         rightInner.add(Box.createVerticalStrut(6));
         rightInner.add(payToggle);
@@ -420,6 +434,14 @@ public class LotDetailFrame extends javax.swing.JFrame {
         return card;
     }
 
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private boolean isOwnedReservation() {
+        return property.getStatus() == PropertyStatus.RESERVED
+            && AppState.currentCustomer != null
+            && AppState.currentCustomer.ownsProperty(property);
+    }
+
     // ── Calculation ────────────────────────────────────────────────────────────
 
     private void recalculate() {
@@ -429,8 +451,18 @@ public class LotDetailFrame extends javax.swing.JFrame {
         double procFee      = property.getProcessingFee();
         double balanceFee   = procFee - resvFee;       // balance after reservation
 
-        // Update reserve button text with correct fee
-        reserveBtn.setText("RESERVE  (₱" + String.format("%,.0f", resvFee) + ")");
+        // Update reserve button — disable if this is already the customer's reserved unit
+        if (isOwnedReservation()) {
+            reserveBtn.setText("✓ ALREADY RESERVED");
+            reserveBtn.setEnabled(false);
+            reserveBtn.setBackground(new Color(180, 180, 180));
+            reserveBtn.setForeground(Color.WHITE);
+        } else {
+            reserveBtn.setText("RESERVE  (₱" + String.format("%,.0f", resvFee) + ")");
+            reserveBtn.setEnabled(true);
+            reserveBtn.setBackground(YELLOW);
+            reserveBtn.setForeground(DARK);
+        }
 
         // Fill fixed rows (same for cash and financing)
         setRow(lbFinalPrice,    "Total Contract Price:",
@@ -515,7 +547,10 @@ public class LotDetailFrame extends javax.swing.JFrame {
 
     private void purchaseBtnActionPerformed(java.awt.event.ActionEvent evt) {
         if (AppState.currentCustomer == null) return;
-        if (property.getStatus() != PropertyStatus.AVAILABLE) {
+        // Allow purchase if AVAILABLE, or if it's the customer's own reserved unit
+        boolean canPurchase = property.getStatus() == PropertyStatus.AVAILABLE
+                           || isOwnedReservation();
+        if (!canPurchase) {
             JOptionPane.showMessageDialog(this, "This property is no longer available.",
                     "Unavailable", JOptionPane.WARNING_MESSAGE);
             return;
