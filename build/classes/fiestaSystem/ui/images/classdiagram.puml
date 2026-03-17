@@ -1,0 +1,173 @@
+@startuml
+
+  abstract class User {
+    # id : String
+    # name : String
+    # role : String
+    + login() : void
+  }
+
+  class Admin {
+    - properties : ArrayList<Property>
+    + addProperty(p : Property) : void
+    + removeProperty(id : String) : boolean
+    + getProperties() : ArrayList<Property>
+    + filterProperties(block : int, minSqm : double, maxPrice : double) :
+  ArrayList<Property>
+    + generateReport() : String
+    - seedData() : void
+  }
+
+  class Agent {
+    - transactions : ArrayList<Transaction>
+    + addTransaction(t : Transaction) : void
+    + getPendingTransactions() : ArrayList<Transaction>
+    + getAllTransactions() : ArrayList<Transaction>
+    + approveTransaction(txId : String) : void
+    + rejectTransaction(txId : String) : void
+  }
+
+  class Customer {
+    - txCounter : int
+    - myTransactions : ArrayList<Transaction>
+    + filterProperties(allProperties : ArrayList<Property>, block : int, minSqm :
+  double, maxPrice : double) : ArrayList<Property>
+    + calculateMortgage(principal : double, years : int, strategy : PaymentStrategy)
+   : double
+    + submitReservation(property : Property, agent : Agent) : void
+    + submitPurchase(property : Property, agent : Agent, paymentMethod :
+  PaymentStrategy) : void
+    + ownsProperty(p : Property) : boolean
+    + getMyTransactions() : ArrayList<Transaction>
+  }
+
+  User <|-- Admin
+  User <|-- Agent
+  User <|-- Customer
+
+  class AppState {
+    + {static} admin : Admin
+    + {static} agent : Agent
+    + {static} currentCustomer : Customer
+    + {static} customers : HashMap<String, Customer>
+    + {static} getOrCreateCustomer(name : String) : Customer
+  }
+
+  class Property {
+    - id : String
+    - blockNumber : int
+    - lotNumber : int
+    - price : double
+    - sqm : double
+    - facing : String
+    - status : PropertyStatus
+    - houseType : HouseType
+    + updateStatus(newStatus : PropertyStatus) : void
+    + setPrice(price : double) : void
+    + getReservationFee() : double
+    + getProcessingFee() : double
+    + getId() : String
+    + getBlockNumber() : int
+    + getLotNumber() : int
+    + getPrice() : double
+    + getSqm() : double
+    + getFacing() : String
+    + getStatus() : PropertyStatus
+    + getHouseType() : HouseType
+  }
+
+  class Transaction {
+    - id : String
+    - property : Property
+    - customerId : String
+    - customerName : String
+    - amount : double
+    - type : TransactionType
+    - status : TransactionStatus
+    - paymentMethod : PaymentStrategy
+    + process() : void
+    + complete() : void
+    + reject() : void
+    + getId() : String
+    + getProperty() : Property
+    + getCustomerId() : String
+    + getCustomerName() : String
+    + getAmount() : double
+    + getType() : TransactionType
+    + getStatus() : TransactionStatus
+    + getPaymentMethod() : PaymentStrategy
+  }
+
+  enum PropertyStatus {
+    AVAILABLE
+    RESERVED
+    SOLD
+  }
+
+  enum TransactionStatus {
+    PENDING
+    APPROVED
+    REJECTED
+  }
+
+  enum TransactionType {
+    RESERVATION
+    PURCHASE
+  }
+
+  enum HouseType {
+    ROW_BARE
+    ROW_IMPROVED
+    ROW_IMPROVED_END
+    DUPLEX_2BR
+    DUPLEX_3BR
+  }
+
+  interface PaymentStrategy {
+    + calculateMonthlyPayment(principal : double, years : int) : double
+    + getInterestRate() : double
+  }
+
+  class CashPayment {
+    + calculateMonthlyPayment(principal : double, years : int) : double
+    + getInterestRate() : double
+  }
+
+  class BDOLoan {
+    + calculateMonthlyPayment(principal : double, years : int) : double
+    + getInterestRate() : double
+  }
+
+  class PagIbigLoan {
+    - rate : double
+    + calculateMonthlyPayment(principal : double, years : int) : double
+    + getInterestRate() : double
+  }
+
+  class InHouseFinancing {
+    + calculateMonthlyPayment(principal : double, years : int) : double
+    + getInterestRate() : double
+  }
+
+  PaymentStrategy <|.. CashPayment
+  PaymentStrategy <|.. BDOLoan
+  PaymentStrategy <|.. PagIbigLoan
+  PaymentStrategy <|.. InHouseFinancing
+
+  Admin "1" o-- "0..*" Property
+  Agent "1" o-- "0..*" Transaction
+  Customer "1" o-- "0..*" Transaction
+
+  Transaction --> Property
+  Transaction --> PaymentStrategy
+  Transaction --> TransactionType
+  Transaction --> TransactionStatus
+
+  Property --> PropertyStatus
+  Property --> HouseType
+
+  AppState --> Admin
+  AppState --> Agent
+  AppState --> Customer
+
+  @enduml
