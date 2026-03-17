@@ -21,6 +21,26 @@ public class LoginFrame extends javax.swing.JFrame {
     
     public LoginFrame() {
         initComponents();
+        // Scale logo proportionally to fit the card — safe to edit, not managed by NetBeans
+        java.net.URL logoUrl = getClass().getResource("/fiestaSystem/ui/images/logo.png");
+        if (logoUrl != null) {
+            javax.swing.ImageIcon raw = new javax.swing.ImageIcon(logoUrl);
+            int origW = raw.getIconWidth();
+            int origH = raw.getIconHeight();
+            // Fit within 408 x 90 while keeping aspect ratio
+            int maxW = 408, maxH = 90;
+            double scale = (origW > 0 && origH > 0)
+                    ? Math.min((double) maxW / origW, (double) maxH / origH) : 1.0;
+            int targetW = (int) (origW * scale);
+            int targetH = (int) (origH * scale);
+            java.awt.Image scaled = raw.getImage()
+                    .getScaledInstance(targetW, targetH, java.awt.Image.SCALE_SMOOTH);
+            titleLabel.setIcon(new javax.swing.ImageIcon(scaled));
+            titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            titleLabel.setPreferredSize(new java.awt.Dimension(targetW, targetH));
+            titleLabel.setMaximumSize(new java.awt.Dimension(targetW, targetH));
+            titleLabel.setMinimumSize(new java.awt.Dimension(targetW, targetH));
+        }
     }
 
     /**
@@ -47,7 +67,6 @@ public class LoginFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("LOGIN");
-        setPreferredSize(new java.awt.Dimension(520, 420));
         setResizable(false);
 
         centerPanel.setBackground(new java.awt.Color(240, 240, 240));
@@ -56,17 +75,18 @@ public class LoginFrame extends javax.swing.JFrame {
 
         card.setBackground(new java.awt.Color(255, 255, 255));
         card.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 3), javax.swing.BorderFactory.createEmptyBorder(16, 24, 16, 24)));
-        card.setMaximumSize(new java.awt.Dimension(460, 240));
-        card.setPreferredSize(new java.awt.Dimension(460, 240));
+        card.setMaximumSize(new java.awt.Dimension(460, 270));
+        card.setPreferredSize(new java.awt.Dimension(460, 270));
         card.setLayout(new javax.swing.BoxLayout(card, javax.swing.BoxLayout.Y_AXIS));
 
-        titleLabel.setBackground(new java.awt.Color(255, 191, 0));
-        titleLabel.setFont(new java.awt.Font("Courier New", 1, 32)); // NOI18N
-        titleLabel.setText("FIESTA HOMES");
+        titleLabel.setBackground(new java.awt.Color(255, 255, 255));
+        titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        titleLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fiestaSystem/ui/images/logo.png"))); // NOI18N
         titleLabel.setAlignmentX(0.5F);
-        titleLabel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 3), javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3)));
-        titleLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        titleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        titleLabel.setMinimumSize(new java.awt.Dimension(500, 100));
         titleLabel.setOpaque(true);
+        titleLabel.setPreferredSize(new java.awt.Dimension(500, 90));
         card.add(titleLabel);
 
         subLabel.setFont(new java.awt.Font("Courier New", 0, 10)); // NOI18N
@@ -165,11 +185,18 @@ public class LoginFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void adminBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminBtnActionPerformed
-        AppState.admin.login();
-        new AdminFrame().setVisible(true);
+    private void customerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customerBtnActionPerformed
+        String name = JOptionPane.showInputDialog(
+            this, "Enter your name:", "Customer Login", JOptionPane.PLAIN_MESSAGE);
+
+        if (name == null || name.trim().isEmpty())
+        return;
+
+        AppState.currentCustomer = AppState.getOrCreateCustomer(name);
+        AppState.currentCustomer.login();
+        new CustomerMapFrame().setVisible(true);
         dispose();
-    }//GEN-LAST:event_adminBtnActionPerformed
+    }//GEN-LAST:event_customerBtnActionPerformed
 
     private void agentBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_agentBtnActionPerformed
         AppState.agent.login();
@@ -177,18 +204,11 @@ public class LoginFrame extends javax.swing.JFrame {
         dispose();
     }//GEN-LAST:event_agentBtnActionPerformed
 
-    private void customerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customerBtnActionPerformed
-        String name = JOptionPane.showInputDialog(
-            this, "Enter your name:", "Customer Login", JOptionPane.PLAIN_MESSAGE);
-
-        if (name == null || name.trim().isEmpty())
-            return;
-
-        AppState.currentCustomer = AppState.getOrCreateCustomer(name);
-        AppState.currentCustomer.login();
-        new CustomerMapFrame().setVisible(true);
+    private void adminBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminBtnActionPerformed
+        AppState.admin.login();
+        new AdminFrame().setVisible(true);
         dispose();
-    }//GEN-LAST:event_customerBtnActionPerformed
+    }//GEN-LAST:event_adminBtnActionPerformed
 
     /**
      * @param args the command line arguments
