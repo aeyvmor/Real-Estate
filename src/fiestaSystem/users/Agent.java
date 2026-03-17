@@ -15,9 +15,7 @@ public class Agent extends User {
     }
 
     @Override
-    public void login() {
-        System.out.println("Agent " + name + " logged in.");
-    }
+    public void login() {}
 
     public void addTransaction(Transaction t) {
         transactions.add(t);
@@ -37,6 +35,7 @@ public class Agent extends User {
         return transactions;
     }
 
+    // Silently does nothing if the transaction isn't found or is already processed
     public void approveTransaction(String txId) {
         for (Transaction t : transactions) {
             if (t.getId().equals(txId) && t.getStatus() == TransactionStatus.PENDING) {
@@ -44,7 +43,6 @@ public class Agent extends User {
                 return;
             }
         }
-        System.out.println("Transaction not found or already processed.");
     }
 
     public void rejectTransaction(String txId) {
@@ -54,6 +52,5 @@ public class Agent extends User {
                 return;
             }
         }
-        System.out.println("Transaction not found or already processed.");
     }
 }

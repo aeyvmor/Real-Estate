@@ -1,11 +1,3 @@
-/*
- * AgentFrame.java
- * fiestaSystem.ui
- * SALES CONTROLLER — Agent dashboard.
- * Action queue (pending transactions with approve/reject),
- * Transaction history panel.
- * All logic delegated to AppState.agent methods.
- */
 package fiestaSystem.ui;
 
 import fiestaSystem.AppState;
@@ -16,9 +8,6 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
 
-/**
- * @author eevee
- */
 public class AgentFrame extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger =
@@ -61,7 +50,6 @@ public class AgentFrame extends javax.swing.JFrame {
         topBar.setBorder(BorderFactory.createMatteBorder(0, 0, 4, 0, DARK));
         topBar.setPreferredSize(new Dimension(980, 70));
 
-        // Left: icon + title
         JPanel topLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
         topLeft.setOpaque(false);
 
@@ -87,7 +75,6 @@ public class AgentFrame extends javax.swing.JFrame {
         topLeft.add(titleBlock);
         topBar.add(topLeft, BorderLayout.WEST);
 
-        // Right: badge + buttons
         JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 18));
         topRight.setOpaque(false);
 
@@ -247,7 +234,6 @@ public class AgentFrame extends javax.swing.JFrame {
         midRow.add(buyerLbl, BorderLayout.WEST);
         midRow.add(feeLbl, BorderLayout.EAST);
 
-        // Tags
         JPanel tagRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         tagRow.setOpaque(false);
         tagRow.add(makeTag(t.getType().name()));

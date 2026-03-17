@@ -1,7 +1,6 @@
 package fiestaSystem.model;
 
 import fiestaSystem.payment.PaymentStrategy;
-import fiestaSystem.model.Property;
 import fiestaSystem.enums.TransactionStatus;
 import fiestaSystem.enums.TransactionType;
 import fiestaSystem.enums.PropertyStatus;
@@ -29,10 +28,7 @@ public class Transaction {
         this.status = TransactionStatus.PENDING;
     }
 
-    public void process() {
-        System.out.println("Processing transaction: " + id);
-    }
-
+    // Marks transaction as approved and updates the property status accordingly
     public void complete() {
         this.status = TransactionStatus.APPROVED;
         if (type == TransactionType.RESERVATION) {
@@ -40,13 +36,12 @@ public class Transaction {
         } else if (type == TransactionType.PURCHASE) {
             property.updateStatus(PropertyStatus.SOLD);
         }
-        System.out.println("Transaction " + id + " completed. Property: " + property.getStatus());
     }
 
+    // Marks transaction as rejected and releases the property back to available
     public void reject() {
         this.status = TransactionStatus.REJECTED;
         property.updateStatus(PropertyStatus.AVAILABLE);
-        System.out.println("Transaction " + id + " rejected. Property is now AVAILABLE.");
     }
 
     public String getId()                     { return id; }
@@ -60,7 +55,7 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return id + " | " + type + " | " + property.getId() 
+        return id + " | " + type + " | " + property.getId()
              + " | P" + amount + " | " + status + " | " + customerName;
     }
 }

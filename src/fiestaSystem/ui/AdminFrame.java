@@ -1,10 +1,3 @@
-/*
- * AdminFrame.java
- * fiestaSystem.ui
- * SYSADMIN TERMINAL — Admin dashboard.
- * Property table with HouseType column, filter, inject record with HouseType dropdown.
- * All logic delegated to AppState.admin methods.
- */
 package fiestaSystem.ui;
 
 import fiestaSystem.AppState;
@@ -18,9 +11,6 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.ArrayList;
 
-/**
- * @author eevee
- */
 public class AdminFrame extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger =
@@ -50,7 +40,6 @@ public class AdminFrame extends javax.swing.JFrame {
     private JScrollPane scrollPane;
     private JTable      propTable;
     private JTextField  filterBlockField, filterSqmField, filterPriceField;
-    // Inject form
     private JComboBox<HouseType> houseTypeCombo;
     private JTextField  injectPriceField, injectBlockField, injectLotField,
                         injectSqmField, injectFacingField;
@@ -171,7 +160,6 @@ public class AdminFrame extends javax.swing.JFrame {
         dbHeader.add(dbTitle,     BorderLayout.NORTH);
         dbHeader.add(filterStrip, BorderLayout.CENTER);
 
-        // Table — now includes HOUSE TYPE column
         String[] cols = {"ID", "BLOCK", "LOT", "HOUSE TYPE", "SQM", "PRICE (₱)", "FACING", "STATUS"};
         tableModel = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -258,7 +246,6 @@ public class AdminFrame extends javax.swing.JFrame {
                 BorderFactory.createEmptyBorder(14, 14, 14, 14)));
         formPanel.setLayout(new GridLayout(0, 1, 0, 5));
 
-        // HouseType dropdown
         houseTypeCombo = new JComboBox<>(HouseType.values());
         houseTypeCombo.setFont(MONO_XS);
         houseTypeCombo.setBackground(new Color(5, 12, 22));
@@ -275,7 +262,6 @@ public class AdminFrame extends javax.swing.JFrame {
                 return this;
             }
         });
-        // Auto-fill price and sqm when house type changes
         houseTypeCombo.addActionListener(e -> autoFillFromHouseType());
 
         injectPriceField  = makeField("", 0);
@@ -488,9 +474,7 @@ public class AdminFrame extends javax.swing.JFrame {
             Property p = new Property(block, lot, price, sqm, facing, ht);
             AppState.admin.addProperty(p);
 
-            // Clear adjustable fields; keep type/block/facing
             injectLotField.setText("");
-            // Re-auto-fill price/sqm from current type
             autoFillFromHouseType();
 
             refreshTable(AppState.admin.getProperties());

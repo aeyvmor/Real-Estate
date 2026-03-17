@@ -1,11 +1,3 @@
-/*
- * LotDetailFrame.java
- * fiestaSystem.ui
- * Lot detail + Financial Terminal.
- * Left: house image (loaded from ui/images/), specs card.
- * Right: full financial breakdown with fees from HouseType.
- * All logic delegated to AppState.currentCustomer methods.
- */
 package fiestaSystem.ui;
 
 import fiestaSystem.AppState;
@@ -20,9 +12,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.net.URL;
 
-/**
- * @author eevee
- */
 public class LotDetailFrame extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger =
@@ -34,7 +23,6 @@ public class LotDetailFrame extends javax.swing.JFrame {
     private static final Color DARK      = new Color(10, 10, 10);
     private static final Color YELLOW    = new Color(255, 213, 0);
     private static final Color GREEN     = new Color(34, 197, 94);
-    private static final Color GREEN_BG  = new Color(34, 197, 94);
     private static final Color RED_LABEL = new Color(200, 30, 30);
     private static final Color TEXT_GRAY = new Color(100, 100, 100);
     private static final Color BORDER_LT = new Color(220, 220, 220);
@@ -110,7 +98,6 @@ public class LotDetailFrame extends javax.swing.JFrame {
         basePriceLabel.setOpaque(true);
         basePriceLabel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
 
-        // Spec tags row
         JPanel specRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         specRow.setOpaque(false);
         sqmLabel     = tagLabel("LOT: " + property.getSqm() + " sqm");
@@ -129,11 +116,9 @@ public class LotDetailFrame extends javax.swing.JFrame {
                 BorderFactory.createLineBorder(DARK, 3),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
-        // Image area
         JPanel imgArea = buildImagePanel();
         imageCard.add(imgArea, BorderLayout.CENTER);
 
-        // Specs below image
         JPanel specsCard = buildSpecsCard();
         imageCard.add(specsCard, BorderLayout.SOUTH);
 
@@ -283,7 +268,7 @@ public class LotDetailFrame extends javax.swing.JFrame {
 
         // Monthly total highlight bar
         JPanel monthlyBar = new JPanel(new BorderLayout());
-        monthlyBar.setBackground(GREEN_BG);
+        monthlyBar.setBackground(GREEN);
         monthlyBar.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
         monthlyBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         monthlyBar.setAlignmentX(LEFT_ALIGNMENT);
@@ -367,7 +352,6 @@ public class LotDetailFrame extends javax.swing.JFrame {
                 URL imgUrl = getClass().getResource("images/" + fileName);
                 if (imgUrl != null) {
                     ImageIcon icon = new ImageIcon(imgUrl);
-                    // Scale to fit
                     Image scaled = icon.getImage().getScaledInstance(320, 200, Image.SCALE_SMOOTH);
                     JLabel imgLabel = new JLabel(new ImageIcon(scaled));
                     imgLabel.setHorizontalAlignment(SwingConstants.CENTER);

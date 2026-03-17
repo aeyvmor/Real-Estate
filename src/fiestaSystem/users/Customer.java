@@ -20,10 +20,10 @@ public class Customer extends User {
     }
 
     @Override
-    public void login() {
-        System.out.println("Customer " + name + " logged in.");
-    }
+    public void login() {}
 
+    // Returns only AVAILABLE properties matching the given filters.
+    // block=0 = all blocks, minSqm=0 and maxPrice=0 = no limit.
     public ArrayList<Property> filterProperties(ArrayList<Property> allProperties,
                                                  int block, double minSqm, double maxPrice) {
         ArrayList<Property> result = new ArrayList<>();
@@ -43,7 +43,7 @@ public class Customer extends User {
         return strategy.calculateMonthlyPayment(principal, years);
     }
 
-    /** Returns true if this customer has a non-rejected transaction on the given property. */
+    // True if this customer has an active (non-rejected) transaction on the property
     public boolean ownsProperty(Property p) {
         for (Transaction tx : myTransactions) {
             if (tx.getProperty().getId().equals(p.getId())
@@ -60,7 +60,6 @@ public class Customer extends User {
 
     public void submitReservation(Property property, Agent agent) {
         if (property.getStatus() != PropertyStatus.AVAILABLE) {
-            System.out.println("Property is not available.");
             return;
         }
         txCounter++;
@@ -70,13 +69,12 @@ public class Customer extends User {
         property.updateStatus(PropertyStatus.RESERVED);
         agent.addTransaction(tx);
         myTransactions.add(tx);
-        System.out.println("Reservation submitted: " + txId);
     }
 
+    // Accepts AVAILABLE or RESERVED — reserved is allowed when the customer already holds this unit
     public void submitPurchase(Property property, Agent agent, PaymentStrategy paymentMethod) {
         if (property.getStatus() != PropertyStatus.AVAILABLE
                 && property.getStatus() != PropertyStatus.RESERVED) {
-            System.out.println("Property is not available.");
             return;
         }
         txCounter++;
@@ -86,6 +84,5 @@ public class Customer extends User {
         property.updateStatus(PropertyStatus.RESERVED);
         agent.addTransaction(tx);
         myTransactions.add(tx);
-        System.out.println("Purchase submitted: " + txId);
     }
 }

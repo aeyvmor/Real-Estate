@@ -92,7 +92,7 @@ public class LoginFrame extends javax.swing.JFrame {
         subLabel.setFont(new java.awt.Font("Courier New", 0, 10)); // NOI18N
         subLabel.setForeground(new java.awt.Color(130, 130, 130));
         subLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        subLabel.setText("REAL ESTATE MANGEMENT SYSTEM");
+        subLabel.setText("REAL ESTATE MANAGEMENT SYSTEM");
         subLabel.setAlignmentX(0.5F);
         subLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 1, 1, 1));
         card.add(subLabel);

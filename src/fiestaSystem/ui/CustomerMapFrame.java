@@ -1,11 +1,3 @@
-/*
- * CustomerMapFrame.java
- * fiestaSystem.ui
- * BUYER KIOSK — Customer property browser.
- * Visual grid of 5 blocks x 20 lots, filter sidebar.
- * Clicking an available lot opens LotDetailFrame.
- * All logic delegated to AppState.currentCustomer / AppState.admin.
- */
 package fiestaSystem.ui;
 
 import fiestaSystem.AppState;
@@ -18,16 +10,13 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author eevee
- */
 public class CustomerMapFrame extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger =
             java.util.logging.Logger.getLogger(CustomerMapFrame.class.getName());
 
     // ── Palette ──────────────────────────────────────────────────────────────
-    private static final Color BG_OUTER   = new Color(0, 210, 220);   // cyan teal bg
+    private static final Color BG_OUTER   = new Color(0, 210, 220);
     private static final Color BG_SIDE    = new Color(255, 255, 255);
     private static final Color BG_GRID    = new Color(230, 232, 235);
     private static final Color DARK       = new Color(10, 10, 10);
@@ -366,14 +355,12 @@ public class CustomerMapFrame extends javax.swing.JFrame {
         int bw = (highlighted || isOwnedRsvd) ? 2 : 1;
         cell.setBorder(BorderFactory.createLineBorder(borderColor, bw));
 
-        // Lot label (top-left)
         JLabel lotLbl = new JLabel("L" + String.format("%02d", p.getLotNumber()));
         lotLbl.setFont(new Font("Courier New", Font.BOLD, 9));
         lotLbl.setForeground(dimmed ? new Color(160, 160, 160) : DARK);
         lotLbl.setBorder(BorderFactory.createEmptyBorder(3, 3, 0, 0));
         cell.add(lotLbl, BorderLayout.NORTH);
 
-        // Status badge (center)
         if (isOwnedRsvd) {
             JLabel badge = new JLabel("YOURS") {
                 @Override
