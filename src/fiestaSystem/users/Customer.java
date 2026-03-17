@@ -74,7 +74,8 @@ public class Customer extends User {
     }
 
     public void submitPurchase(Property property, Agent agent, PaymentStrategy paymentMethod) {
-        if (property.getStatus() != PropertyStatus.AVAILABLE) {
+        if (property.getStatus() != PropertyStatus.AVAILABLE
+                && property.getStatus() != PropertyStatus.RESERVED) {
             System.out.println("Property is not available.");
             return;
         }
