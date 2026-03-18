@@ -24,14 +24,14 @@ public class Admin extends User {
                 HouseType ht;
                 switch (block) {
                     case 1:  ht = HouseType.ROW_BARE;    break;
-                    case 2:
+                    case 2:  ht = HouseType.ROW_IMPROVED;
                     case 3:  ht = (lot == 1 || lot == 20)
                                   ? HouseType.ROW_IMPROVED_END
                                   : HouseType.ROW_IMPROVED; break;
                     case 4:  ht = HouseType.DUPLEX_2BR;  break;
                     default: ht = HouseType.DUPLEX_3BR;  break;
                 }
-                double price  = ht.basePrice + (lot * 5000);
+                double price  = ht.basePrice;
                 String facing = facings[lot % 4];
                 properties.add(new Property(block, lot, price, ht.lotSqm, facing, ht));
             }
